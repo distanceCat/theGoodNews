@@ -1,16 +1,16 @@
 # powered by newsapi.org
-import requests
+# import requests
 # import json
 # import sentiment_analyser
+import config
 import sqlite3
 import datetime
+from newsapi import NewsApiClient
 
 def fetch_news():
-    url = ('https://newsapi.org/v2/top-headlines?'
-           'country=de&'
-           'apiKey=ad803c9cd6f144a287f50bdbd3e5a502')
-    response = requests.get(url)
-    news_feed_json = response.json()
+    newsapi = NewsApiClient(api_key=config.newsapi_key)
+
+    news_feed_json = newsapi.get_top_headlines(country='de')
     articles = []
     for article in news_feed_json["articles"]:
         articles.append(article["title"])
@@ -25,7 +25,8 @@ def store_titles(articles):
     conn = sqlite3.connect(".\data\storage.db")
     c = conn.cursor()
     dt = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    c.execute("INSERT INTO good_news_short(date, title) VALUES (?, ?)", (dt, articles[0]))
+    the_date = datetime.datetime.now().strftime("%Y%m%d")
+    c.execute("INSERT INTO good_news_short(datetime, date, title) VALUES (?, ?, ?)", (dt, the_date, articles[0]))
     conn.commit()
     conn.close()
 
